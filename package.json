@@ -1,0 +1,27 @@
+{
+  "name": "face-detection-api",
+  "version": "1.0.0",
+  "description": "API for face detection react webapp",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jsueiro/face-detection-api.git"
+  },
+  "author": "JSO",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jsueiro/face-detection-api/issues"
+  },
+  "homepage": "https://github.com/jsueiro/face-detection-api#readme",
+  "devDependencies": {
+    "nodemon": "^2.0.16"
+  },
+  "dependencies": {
+    "express": "^4.18.1"
+  }
+}
