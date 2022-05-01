@@ -1,2 +1,2 @@
 # face-detection-api
-API for face-detection final bootcamp project
+REST API for face-detection bootcamp project
