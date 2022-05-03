@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt-nodejs');
 const cors = require('cors');
 const knex = require('knex');
 
-knex({
+const pg = knex({
     client: 'pg',
     connection: {
         host: '127.0.0.1',
@@ -14,56 +14,37 @@ knex({
     }
 });
 
+
+
 const app = express();
 
 app.use(express.json());
 app.use(cors());
 
-const database = {
-    users: [
-        {
-            id: '123',
-            name: 'bob',
-            email: 'bob@bob.com',
-            password: 'qweqwe',
-            entries: 0,
-            joined: new Date()
-        },
-        {
-            id: '124',
-            name: 'sally',
-            email: 'sal@bob.com',
-            password: 'qweqwe',
-            entries: 0,
-            joined: new Date()
-        }
-    ],
-    login: [
-        {
-            id: '987',
-            hash: '',
-            email: 'bob@bob.com'
-        }
-    ]
-}
-
 app.get('/', (req, res) => {
-    res.send(database.users);
+    res.send('success');
 })
 
 app.post('/signin', (req, res) => {
 
-    // bcrypt.hash('bacon', null, null, function (err, hash) {
+    pg.select('email', 'hash').from('login')
+        .where('email', '=', req.body.email)
+        .then(data => {
+            const isValid = bcrypt.compareSync(req.body.password, data[0].hash);
 
-    // })
+            if (isValid) {
+                return pg.select('*').from('users')
+                    .where('email', '=', req.body.email)
+                    .then(user => {
+                        res.json(user[0])
+                    })
+                    .catch(err => res.status(400).json('unable to get user'))
+            } else {
+                res.status(400).json('wrong credentials')
+            }
 
-    if (req.body.email === database.users[0].email &&
-        req.body.password === database.users[0].password) {
-        //res.json('success');
-        res.json(database.users[0]);
-    } else {
-        res.status(400).json('error logging in');
-    }
+        })
+        .catch(err => res.status(400).json('wrong credentials'))
 
 
 
@@ -72,47 +53,61 @@ app.post('/signin', (req, res) => {
 app.post('/register', (req, res) => {
     const { email, name, password } = req.body;
 
-    // bcrypt.hash(password, null, null, function (err, hash) {
-    //     console.log(hash)
-    // });
+    const hash = bcrypt.hashSync(password);
 
-    database.users.push({
-        id: '12125',
-        name: name,
-        email: email,
-        entries: 0,
-        joined: new Date()
+    pg.transaction(trx => {
+        trx.insert({
+            hash: hash,
+            email: email
+        })
+            .into('login')
+            .returning('email')
+            .then(loginEmail => {
+                return trx('users')
+                    .returning('*')
+                    .insert({
+                        email: loginEmail[0].email,
+                        name: name,
+                        joined: new Date()
+                    })
+                    .then(user => {
+                        res.json(user[0]);
+                    })
+
+            })
+            .then(trx.commit)
+            .catch(trx.rollback)
     })
-    res.json(database.users[database.users.length - 1]);
+        .catch(err => res.status(400).json('unable to register'))
 })
 
 app.get('/profile/:id', (req, res) => {
     const { id } = req.params;
-    let found = false;
-    database.users.forEach(user => {
-        if (user.id === id) {
-            found = true;
-            return res.json(user);
-        }
-    })
-    if (!found) {
-        res.status(400).json('not found');
-    }
+
+    pg.select('*').from('users').where('id', id) //can be too .where({id})
+        .then(user => {
+
+            if (user.length) {
+                res.json(user[0]);
+            } else {
+                res.status(400).json('not found')
+            }
+        })
+        .catch(err => res.status(400).json('error getting user'))
 })
 
 app.put('/image', (req, res) => {
     const { id } = req.body;
-    let found = false;
-    database.users.forEach(user => {
-        if (user.id === id) {
-            found = true;
-            user.entries++;
-            return res.json(user.entries);
-        }
-    })
-    if (!found) {
-        res.status(400).json('not found');
-    }
+
+    pg('users').where('id', '=', id)
+        .increment('entries', 1)
+        .returning('entries')
+        .then(entries => {
+            res.json(entries[0].entries);
+        })
+        .catch(err => res.status(400).json('unable to get entries'))
+
+
 })
 
 
