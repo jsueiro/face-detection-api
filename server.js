@@ -27,7 +27,7 @@ app.get('/', (req, res) => {
     res.send('success');
 })
 
-app.post('/signin', (req, res) => { signin.handleSignin(req, res, pg, bcrypt) })
+app.post('/signin', signin.handleSignin(pg, bcrypt))
 
 app.post('/register', (req, res) => { register.handleRegister(req, res, pg, bcrypt) })
 
@@ -35,6 +35,9 @@ app.get('/profile/:id', (req, res) => { profile.handleProfileGet(req, res, pg) }
 
 app.put('/image', (req, res) => { image.handleImage(req, res, pg) })
 
+app.post('/imageurl', (req, res) => { image.handleApiCall(req, res) })
+
 app.listen(3430, () => {
     console.log('app is running on 3430')
 })
+
