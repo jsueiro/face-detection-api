@@ -26,10 +26,7 @@ app.use(express.json());
 app.use(cors());
 
 app.get('/', (req, res) => {
-    res.send('success');
-    console.log(pg.select('*').from('users').then(user => {
-        res.json(user[0])
-    }));
+    res.send('success!');
 })
 
 app.post('/signin', signin.handleSignin(pg, bcrypt))
