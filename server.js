@@ -18,7 +18,6 @@ const pg = knex({
         ssl: { rejectUnauthorized: false }
     }
 
-
 });
 
 const app = express();
@@ -28,6 +27,7 @@ app.use(cors());
 
 app.get('/', (req, res) => {
     res.send('success');
+    console.log(pg.select('*').from('users'));
 })
 
 app.post('/signin', signin.handleSignin(pg, bcrypt))
