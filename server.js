@@ -12,10 +12,13 @@ console.log(process.env.DATABASE_URL);
 
 const pg = knex({
     client: 'pg',
-    connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false
+
+    connection: {
+        connectionString: process.env.DATABASE_URL,
+        ssl: { rejectUnauthorized: false }
     }
+
+
 });
 
 const app = express();
